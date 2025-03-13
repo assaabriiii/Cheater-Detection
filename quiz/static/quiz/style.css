@@ -1,0 +1,245 @@
+body {
+    background: linear-gradient(45deg, #f0f0f0, #e0e0e0); /* Default light theme */
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    transition: background 0.5s ease, color 0.5s ease;
+}
+
+/* Light and Dark Theme Styles */
+body.light {
+    background: linear-gradient(45deg, #f0f0f0, #e0e0e0);
+    color: #333;
+}
+
+body.dark {
+    background: linear-gradient(45deg, #333, #444);
+    color: #f0f0f0;
+}
+
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.container {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+body.dark .container {
+    background-color: #222;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.question-card {
+    margin-bottom: 20px;
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.question-header {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+body.dark .question-header {
+    color: #f0f0f0;
+}
+
+textarea {
+    width: 100%;
+    height: 100px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    font-size: 14px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+body.dark textarea {
+    border-color: #555;
+    background-color: #333;
+    color: #f0f0f0;
+}
+
+textarea:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    outline: none;
+}
+
+.timer {
+    font-size: 14px;
+    color: #666;
+}
+
+body.dark .timer {
+    color: #bbb;
+}
+
+button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+body.dark button {
+    background-color: #0056b3;
+}
+
+button:hover {
+    background-color: #0056b3;
+    transform: scale(1.05);
+}
+
+body.dark button:hover {
+    background-color: #003d82;
+}
+
+button:active {
+    animation: pulse 0.2s ease;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(0.95); }
+    100% { transform: scale(1); }
+}
+
+.progress-bar {
+    width: 100%;
+    background-color: #e0e0e0;
+    height: 10px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+body.dark .progress-bar {
+    background-color: #555;
+}
+
+#progress {
+    width: 0;
+    height: 100%;
+    background-color: #4CAF50;
+    transition: width 0.5s ease-in-out;
+}
+
+#loading {
+    display: none;
+    margin: 20px auto;
+    width: 40px;
+    height: 40px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+body.dark #loading {
+    border: 5px solid #444;
+    border-top: 5px solid #007bff;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+#completion-message {
+    display: none;
+    text-align: center;
+    animation: slideUp 0.7s ease-out;
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+#feedback {
+    display: none;
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    animation: fadeOut 2s ease forwards;
+}
+
+@keyframes fadeOut {
+    0% { opacity: 1; }
+    80% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+.nav-dots {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.nav-dot {
+    width: 12px;
+    height: 12px;
+    background-color: #ccc;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.nav-dot.active {
+    background-color: #007bff;
+    transform: scale(1.2);
+}
+
+body.dark .nav-dot {
+    background-color: #666;
+}
+
+body.dark .nav-dot.active {
+    background-color: #0056b3;
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 15px;
+        margin: 10px;
+    }
+    textarea {
+        height: 120px;
+        font-size: 16px; /* Larger text for touch screens */
+    }
+    button {
+        width: 100%;
+        padding: 15px; /* Bigger tap target */
+        margin-top: 10px;
+    }
+    .nav-dot {
+        width: 15px;
+        height: 15px; /* Larger for touch */
+    }
+}

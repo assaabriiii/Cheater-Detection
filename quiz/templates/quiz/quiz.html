@@ -1,0 +1,830 @@
+{% extends 'quiz/base.html' %}
+{% block content %}
+<style>
+    /* Enhanced UI styles */
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .quiz-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    
+    .quiz-controls {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .btn {
+        padding: 8px 16px;
+        border-radius: 4px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    
+    /* Progress tracking */
+    .progress-bar {
+        height: 8px;
+        background: #e9ecef;
+        border-radius: 4px;
+        margin-bottom: 15px;
+        overflow: hidden;
+    }
+    
+    #progress {
+        height: 100%;
+        background: linear-gradient(90deg, #007bff, #00c6ff);
+        transition: width 0.5s ease;
+    }
+    
+    .progress-stats {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        font-size: 0.9em;
+        color: #6c757d;
+    }
+    
+    /* Navigation dots with enhancements */
+    .nav-dots {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 20px;
+    }
+    
+    .nav-dot {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: #e9ecef;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.8em;
+        position: relative;
+    }
+    
+    .nav-dot:hover {
+        background: #007bff;
+        color: white;
+    }
+    
+    .nav-dot.active {
+        background: #007bff;
+        color: white;
+        transform: scale(1.1);
+    }
+    
+    .nav-dot.answered {
+        background: #28a745;
+        color: white;
+    }
+    
+    .nav-dot.flagged::after {
+        content: "!";
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background: #dc3545;
+        color: white;
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        font-size: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    /* Question card with animations */
+    .question-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        padding: 25px;
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+        animation: fadeIn 0.5s ease;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .question-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 1.2em;
+        font-weight: bold;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #e9ecef;
+    }
+    
+    .question-actions {
+        display: flex;
+        gap: 10px;
+    }
+    
+    #question-text {
+        font-size: 1.1em;
+        line-height: 1.6;
+        margin-bottom: 20px;
+        padding: 15px;
+        background: rgba(0,0,0,0.02);
+        border-radius: 8px;
+    }
+    
+    /* Answer section with word count */
+    #answer-input {
+        width: 100%;
+        min-height: 150px;
+        padding: 15px;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        font-size: 1em;
+        line-height: 1.5;
+        resize: vertical;
+        transition: border-color 0.3s ease;
+        margin-bottom: 10px;
+    }
+    
+    #answer-input:focus {
+        border-color: #007bff;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(0,123,255,0.25);
+    }
+    
+    .answer-stats {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 15px;
+        font-size: 0.9em;
+        color: #6c757d;
+    }
+    
+    /* Footer with enhanced controls */
+    .footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 20px;
+    }
+    
+    .timer {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .timer-value {
+        font-weight: bold;
+        color: #007bff;
+    }
+    
+    .navigation-buttons {
+        display: flex;
+        gap: 10px;
+    }
+    
+    #prev-btn {
+        background: #6c757d;
+        color: white;
+    }
+    
+    #next-btn {
+        background: #007bff;
+        color: white;
+    }
+    
+    #flag-btn {
+        background: #ffc107;
+        color: #212529;
+    }
+    
+    /* Loading and feedback */
+    #loading {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 50px;
+        height: 50px;
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid #007bff;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        display: none;
+        z-index: 1000;
+    }
+    
+    @keyframes spin {
+        0% { transform: translate(-50%, -50%) rotate(0deg); }
+        100% { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+    
+    #feedback {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        padding: 10px 20px;
+        border-radius: 5px;
+        background: #28a745;
+        color: white;
+        display: none;
+        animation: slideIn 0.3s ease;
+        z-index: 1000;
+        max-width: 300px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    @keyframes slideIn {
+        from { transform: translateX(100%); }
+        to { transform: translateX(0); }
+    }
+    
+    /* Completion message */
+    #completion-message {
+        display: none;
+        animation: fadeIn 0.5s ease;
+    }
+    
+    .completion-stats {
+        background: rgba(0,0,0,0.05);
+        padding: 15px;
+        border-radius: 8px;
+        margin: 20px 0;
+    }
+    
+    .stat-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+    }
+    
+    /* Notes feature */
+    .notes-panel {
+        background: #fff9c4;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 20px;
+        display: none;
+    }
+    
+    #notes-input {
+        width: 100%;
+        min-height: 80px;
+        border: 1px solid #e9ecef;
+        border-radius: 4px;
+        padding: 10px;
+        margin-top: 10px;
+        resize: vertical;
+    }
+    
+    /* Shortcuts panel */
+    .shortcuts-panel {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        background: rgba(0,0,0,0.8);
+        color: white;
+        padding: 15px;
+        border-radius: 8px;
+        font-size: 0.9em;
+        display: none;
+        z-index: 1000;
+    }
+    
+    .shortcuts-panel.show {
+        display: block;
+    }
+    
+    /* Dark theme enhancements */
+    body.dark {
+        background: #333;
+        color: #fff;
+    }
+    
+    body.dark .question-card {
+        background: #444;
+        color: #fff;
+    }
+    
+    body.dark #answer-input, 
+    body.dark #notes-input {
+        background: #555;
+        color: #fff;
+        border-color: #666;
+    }
+    
+    body.dark .nav-dot {
+        background: #555;
+        color: #fff;
+    }
+    
+    body.dark #question-text {
+        background: rgba(255,255,255,0.05);
+    }
+    
+    body.dark .notes-panel {
+        background: #5d4037;
+        color: #fff;
+    }
+    
+    body.dark .completion-stats {
+        background: rgba(255,255,255,0.1);
+    }
+    
+    /* Fixed feedback message */
+    #feedback {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        padding: 10px 20px;
+        border-radius: 5px;
+        background: #28a745;
+        color: white;
+        display: none;
+        animation: slideIn 0.3s ease;
+        z-index: 1000;
+        max-width: 300px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    /* Toast notifications for actions */
+    .toast-container {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        z-index: 1000;
+    }
+    
+    .toast {
+        padding: 12px 20px;
+        border-radius: 5px;
+        background: #333;
+        color: white;
+        font-size: 0.9em;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        animation: toastIn 0.3s ease;
+        max-width: 300px;
+    }
+    
+    .toast.success {
+        background: #28a745;
+    }
+    
+    .toast.warning {
+        background: #ffc107;
+        color: #212529;
+    }
+    
+    .toast.error {
+        background: #dc3545;
+    }
+    
+    .toast.info {
+        background: #17a2b8;
+    }
+    
+    .toast-icon {
+        font-size: 1.2em;
+    }
+    
+    @keyframes toastIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    
+    @keyframes toastOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+</style>
+
+<div class="container">
+    <div class="quiz-header">
+        <h1>Quiz - {{ student_name }}</h1>
+        <div class="quiz-controls">
+            <button id="notes-toggle" class="btn" aria-label="Toggle Notes">Notes</button>
+            <button id="shortcuts-btn" class="btn" aria-label="Keyboard Shortcuts">Shortcuts</button>
+            <button id="theme-toggle" class="btn" aria-label="Toggle Dark Mode">Dark Mode</button>
+        </div>
+    </div>
+    
+    <div class="progress-stats">
+        <span>Completed: <span id="completed-count">0</span>/{{ total_questions }}</span>
+        <span>Time elapsed: <span id="total-timer">0:00</span></span>
+    </div>
+    
+    <div class="progress-bar">
+        <div id="progress" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+    </div>
+    
+    <div class="nav-dots" id="nav-dots"></div>
+    
+    <div id="question-container">
+        <div class="question-card">
+            <div class="question-header">
+                <span>Question <span id="current-question">1</span> of {{ total_questions }}</span>
+                <div class="question-actions">
+                    <button id="flag-btn" class="btn" aria-label="Flag Question">Flag for Review</button>
+                </div>
+            </div>
+            <div id="question-text" aria-live="polite"></div>
+            <label for="answer-input">Your Answer:</label>
+            <textarea id="answer-input" placeholder="Type your answer here..." aria-required="true" maxlength="5000"></textarea>
+            <div class="answer-stats">
+                <span>Words: <span id="word-count">0</span></span>
+                <span>Characters: <span id="char-count">0</span>/5000</span>
+                <small>Press Enter to submit, Shift+Enter for newline.</small>
+            </div>
+            <div class="notes-panel" id="notes-panel">
+                <h3>Personal Notes</h3>
+                <p>Use this space for your personal notes (not submitted)</p>
+                <textarea id="notes-input" placeholder="Your private notes here..."></textarea>
+            </div>
+        </div>
+        <div class="footer">
+            <div class="timer">
+                <span>Time on question:</span>
+                <span class="timer-value" id="timer">0:00</span>
+            </div>
+            <div class="navigation-buttons">
+                <button id="prev-btn" class="btn" aria-label="Previous Question">Previous</button>
+                <button id="next-btn" class="btn" aria-label="Next Question">Next</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="loading" aria-label="Loading question"></div>
+    
+    <div id="completion-message">
+        <div class="question-card">
+            <h2>Quiz Completed!</h2>
+            <p>Great job, {{ student_name }}! Your answers have been submitted.</p>
+            <div class="completion-stats">
+                <div class="stat-row">
+                    <span>Total time:</span>
+                    <span id="final-time">0:00</span>
+                </div>
+                <div class="stat-row">
+                    <span>Questions answered:</span>
+                    <span id="questions-answered">0/{{ total_questions }}</span>
+                </div>
+                <div class="stat-row">
+                    <span>Average time per question:</span>
+                    <span id="avg-time">0:00</span>
+                </div>
+            </div>
+            <button id="show-cheaters-btn" onclick="window.location.href='{% url 'show_cheaters' %}'" class="btn">
+                Show Cheating Analysis
+            </button>
+        </div>
+    </div>
+    
+    <div id="feedback" role="alert"></div>
+    
+    <div class="shortcuts-panel" id="shortcuts-panel">
+        <h3>Keyboard Shortcuts</h3>
+        <ul>
+            <li><strong>←/→</strong>: Navigate questions</li>
+            <li><strong>Ctrl+Enter</strong>: Next question</li>
+            <li><strong>?</strong>: Show/hide shortcuts</li>
+        </ul>
+    </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+    const totalQuestions = {{ total_questions }};
+    let currentQuestion = 1;
+    let startTime = new Date();
+    let totalStartTime = new Date();
+    let answers = JSON.parse(localStorage.getItem('quizAnswers')) || {};
+    let notes = JSON.parse(localStorage.getItem('quizNotes')) || {};
+    let flagged = JSON.parse(localStorage.getItem('quizFlagged')) || [];
+    let autoSaveTimeout;
+
+    // Load saved theme
+    if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
+    else document.body.classList.add('light');
+
+    // Theme toggle
+    document.getElementById('theme-toggle').addEventListener('click', () => {
+        document.body.classList.toggle('dark');
+        document.body.classList.toggle('light');
+        localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+        document.getElementById('theme-toggle').textContent = document.body.classList.contains('dark') ? 'Light Mode' : 'Dark Mode';
+    });
+
+    // Setup navigation dots
+    function setupNavDots() {
+        const navDots = document.getElementById('nav-dots');
+        navDots.innerHTML = '';
+        for (let i = 1; i <= totalQuestions; i++) {
+            const dot = document.createElement('div');
+            dot.classList.add('nav-dot');
+            dot.textContent = i;
+            if (i === currentQuestion) dot.classList.add('active');
+            if (answers[i]) dot.classList.add('answered');
+            if (flagged.includes(i)) dot.classList.add('flagged');
+            dot.addEventListener('click', () => switchQuestion(i));
+            navDots.appendChild(dot);
+        }
+    }
+
+    // Update word and character count
+    function updateTextStats() {
+        const text = document.getElementById('answer-input').value;
+        const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+        const chars = text.length;
+        
+        document.getElementById('word-count').textContent = words;
+        document.getElementById('char-count').textContent = chars;
+    }
+
+    // Format time (mm:ss)
+    function formatTime(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    // Improved toast notification system
+    function showToast(message, type = 'success', duration = 3000) {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        
+        // Add appropriate icon
+        let icon = '';
+        switch(type) {
+            case 'success': icon = '✓'; break;
+            case 'warning': icon = '⚠'; break;
+            case 'error': icon = '✕'; break;
+            case 'info': icon = 'ℹ'; break;
+        }
+        
+        toast.innerHTML = `
+            <span class="toast-icon">${icon}</span>
+            <span>${message}</span>
+        `;
+        
+        container.appendChild(toast);
+        
+        // Remove after duration
+        setTimeout(() => {
+            toast.style.animation = 'toastOut 0.3s ease forwards';
+            setTimeout(() => {
+                container.removeChild(toast);
+            }, 300);
+        }, duration);
+    }
+
+    // Replace old feedback function with new toast system
+    function showFeedback(message, type = 'success') {
+        showToast(message, type);
+    }
+
+    // Toggle flag for current question
+    function toggleFlag() {
+        if (flagged.includes(currentQuestion)) {
+            flagged = flagged.filter(q => q !== currentQuestion);
+            document.getElementById('flag-btn').textContent = 'Flag for Review';
+            showToast('Question unflagged', 'info');
+        } else {
+            flagged.push(currentQuestion);
+            document.getElementById('flag-btn').textContent = 'Unflag Question';
+            showToast('Question flagged for review', 'warning');
+        }
+        localStorage.setItem('quizFlagged', JSON.stringify(flagged));
+        setupNavDots();
+    }
+
+    // Toggle notes panel
+    function toggleNotes() {
+        const panel = document.getElementById('notes-panel');
+        if (panel.style.display === 'block') {
+            panel.style.display = 'none';
+            document.getElementById('notes-toggle').textContent = 'Show Notes';
+        } else {
+            panel.style.display = 'block';
+            document.getElementById('notes-toggle').textContent = 'Hide Notes';
+            document.getElementById('notes-input').value = notes[currentQuestion] || '';
+            document.getElementById('notes-input').focus();
+        }
+    }
+
+    // Toggle shortcuts panel
+    function toggleShortcuts() {
+        const panel = document.getElementById('shortcuts-panel');
+        panel.classList.toggle('show');
+    }
+
+    // Update progress indicators
+    function updateProgress() {
+        const answeredCount = Object.keys(answers).length;
+        const progress = (answeredCount / totalQuestions) * 100;
+        document.getElementById('progress').style.width = progress + '%';
+        document.getElementById('progress').setAttribute('aria-valuenow', progress);
+        document.getElementById('completed-count').textContent = answeredCount;
+    }
+
+    // Load question
+    function loadQuestion() {
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('question-container').style.opacity = '0.5';
+        startTime = new Date();
+        
+        fetch('/get_question/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `question_number=${currentQuestion}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('question-container').style.opacity = '1';
+            if (data.success) {
+                document.getElementById('question-text').textContent = data.question;
+                document.getElementById('current-question').textContent = currentQuestion;
+                document.getElementById('answer-input').value = answers[currentQuestion] || '';
+                document.getElementById('notes-input').value = notes[currentQuestion] || '';
+                document.getElementById('flag-btn').textContent = 
+                    flagged.includes(currentQuestion) ? 'Unflag Question' : 'Flag for Review';
+                
+                // Update UI states
+                document.getElementById('prev-btn').disabled = currentQuestion === 1;
+                document.getElementById('next-btn').textContent = 
+                    currentQuestion === totalQuestions ? 'Finish Quiz' : 'Next';
+                
+                setupNavDots();
+                updateProgress();
+                updateTextStats();
+            }
+        })
+        .catch(error => {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('question-container').style.opacity = '1';
+            showToast('Error loading question', 'error');
+        });
+    }
+
+    // Save answer
+    function saveAnswer() {
+        const endTime = new Date();
+        const timeTaken = Math.round((endTime - startTime) / 1000);
+        const answer = document.getElementById('answer-input').value;
+        const noteText = document.getElementById('notes-input').value;
+        
+        // Save answer and notes locally
+        answers[currentQuestion] = answer;
+        notes[currentQuestion] = noteText;
+        localStorage.setItem('quizAnswers', JSON.stringify(answers));
+        localStorage.setItem('quizNotes', JSON.stringify(notes));
+
+        // Send to server
+        fetch('/save_answer/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                qnumber: currentQuestion,
+                answer: answer,
+                time_taken: timeTaken
+            })
+        }).then(() => {
+            setupNavDots();
+            updateProgress();
+            showToast('Answer saved', 'success');
+        }).catch(() => {
+            showToast('Error saving answer', 'error');
+        });
+    }
+
+    // Switch question
+    function switchQuestion(qnum) {
+        if (qnum === currentQuestion) return;
+        saveAnswer();
+        currentQuestion = qnum;
+        loadQuestion();
+    }
+
+    // Event listeners
+    document.getElementById('next-btn').addEventListener('click', () => {
+        saveAnswer();
+        if (currentQuestion < totalQuestions) {
+            currentQuestion++;
+            loadQuestion();
+        } else {
+            finishQuiz();
+        }
+    });
+
+    document.getElementById('prev-btn').addEventListener('click', () => {
+        if (currentQuestion > 1) {
+            saveAnswer();
+            currentQuestion--;
+            loadQuestion();
+        }
+    });
+
+    document.getElementById('flag-btn').addEventListener('click', toggleFlag);
+    document.getElementById('notes-toggle').addEventListener('click', toggleNotes);
+    document.getElementById('shortcuts-btn').addEventListener('click', toggleShortcuts);
+
+    document.getElementById('answer-input').addEventListener('input', () => {
+        updateTextStats();
+        autoSave();
+    });
+
+    document.getElementById('notes-input').addEventListener('input', () => {
+        notes[currentQuestion] = document.getElementById('notes-input').value;
+        localStorage.setItem('quizNotes', JSON.stringify(notes));
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+        if (e.key === '?') {
+            toggleShortcuts()
+        } else if (e.ctrlKey && e.key === 'Enter') {
+            e.preventDefault();
+            document.getElementById('next-btn').click();
+        } else if (e.key === 'ArrowRight' && currentQuestion < totalQuestions) {
+            switchQuestion(currentQuestion + 1);
+        } else if (e.key === 'ArrowLeft' && currentQuestion > 1) {
+            switchQuestion(currentQuestion - 1);
+        } else if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            document.getElementById('next-btn').click();
+        } 
+    });
+
+    // Finish quiz
+    function finishQuiz() {
+        document.getElementById('question-container').style.display = 'none';
+        document.getElementById('completion-message').style.display = 'block';
+        
+        const totalTime = Math.round((new Date() - totalStartTime) / 1000);
+        const answeredCount = Object.keys(answers).length;
+        const avgTime = answeredCount > 0 ? Math.round(totalTime / answeredCount) : 0;
+        
+        document.getElementById('final-time').textContent = formatTime(totalTime);
+        document.getElementById('questions-answered').textContent = `${answeredCount}/${totalQuestions}`;
+        document.getElementById('avg-time').textContent = formatTime(avgTime);
+        
+        // Clear local storage
+        localStorage.removeItem('quizAnswers');
+        localStorage.removeItem('quizNotes');
+        localStorage.removeItem('quizFlagged');
+    }
+
+    // Timer updates
+    setInterval(() => {
+        if (startTime) {
+            const questionTime = Math.round((new Date() - startTime) / 1000);
+            document.getElementById('timer').textContent = formatTime(questionTime);
+        }
+        const totalTime = Math.round((new Date() - totalStartTime) / 1000);
+        document.getElementById('total-timer').textContent = formatTime(totalTime);
+    }, 1000);
+
+    // Auto-save functionality
+    function autoSave() {
+        clearTimeout(autoSaveTimeout);
+        autoSaveTimeout = setTimeout(() => {
+            saveAnswer();
+            showToast('Answer auto-saved', 'success');
+        }, 3000);
+    }
+
+    // Initialize
+    setupNavDots();
+    updateProgress();
+    loadQuestion();
+</script>
+{% endblock %}

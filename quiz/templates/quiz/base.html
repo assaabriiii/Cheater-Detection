@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quiz Application</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'quiz/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    {% load static %}
+</head>
+<body>
+    {% block content %}{% endblock %}
+    <script src="{% static 'quiz/script.js' %}"></script>
+</body>
+</html>
